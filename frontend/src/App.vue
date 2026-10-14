@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { api, csrf } from './api'
 import SensorChart from './SensorChart.vue'
 const user = ref(null), loading = ref(true), busy = ref(false), error = ref(''), apiError = ref('')
-const email = ref('admin@chitito.local'), password = ref(''), device = ref(null), points = ref([]), history = ref({ data: [], current_page: 1, last_page: 1, total: 0 })
+const email = ref(''), password = ref(''), device = ref(null), points = ref([]), history = ref({ data: [], current_page: 1, last_page: 1, total: 0 })
 const range = ref('1'), customFrom = ref(''), customTo = ref(''), tab = ref('overview'), rangeError = ref(''), queryBusy = ref(false), chartMeta = ref(null)
 let timer, tick = 0, generation = 0, disposed = false
 const metrics = [{ field: 'peso_raw', label: 'Báscula HX711', unit: 'raw', subtitle: 'Lectura después de tara · sin calibrar', color: '#526b42' }, { field: 'distancia_mm', label: 'Distancia VL53L1X', unit: 'mm', subtitle: 'Distancia hasta el alimento', color: '#8d7b3d' }, { field: 'nivel_pct', label: 'Alimento disponible', unit: '%', subtitle: 'Porcentaje informado por el ESP32', color: '#3e7168' }]

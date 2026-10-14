@@ -6,4 +6,5 @@ COPY frontend/ ./
 RUN npm run build
 FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY infrastructure/nginx.conf /etc/nginx/conf.d/default.conf
+COPY infrastructure/nginx.conf /etc/nginx/templates/default.conf.template
+COPY infrastructure/nginx-app.conf /etc/nginx/snippets/chitito-app.conf

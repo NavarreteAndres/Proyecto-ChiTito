@@ -4,11 +4,11 @@ use Illuminate\Console\Command;
 use App\Models\{User,Device};
 class CreateAdmin extends Command
 {
-    protected $signature='chitito:admin {email=admin@chitito.local} {--initial}';
+    protected $signature='chitito:admin {email?} {--initial}';
     protected $description='Create or reset the administrator securely';
     public function handle(): int {
         Device::firstOrCreate(['identifier'=>'device01'],['name'=>'Dispensador ChiTito']);
-        $email=$this->argument('email');
+        $email=$this->argument('email') ?: config('chitito.admin_email');
         if(!filter_var($email,FILTER_VALIDATE_EMAIL)) {$this->error('Email inválido');return 1;}
         if($this->option('initial')) {
             if(User::where('email',$email)->exists()) return 0;

@@ -53,8 +53,8 @@ recibido, sin recalcularlo.
 
 Proceso independiente `php artisan mqtt:consume`, un único contenedor/una réplica.
 Client ID distinto del ESP32. Suscribe los dos tópicos exactos con QoS 0, con CA
-original, validación de cadena y nombre/IP activas. Conecta a `15.235.63.174:8883`,
-IP presente en el SAN del certificado MQTT.
+original, validación de cadena y nombre/IP activas. Conecta al servidor configurado en `MQTT_HOST` y `MQTT_PORT`,
+respetando la identidad DNS/IP presente en el SAN del certificado MQTT.
 
 Valida longitud, JSON, dispositivo, campos obligatorios y enteros o nulos:
 `peso_raw` firmado de 32 bits, `distancia_mm` 0–65535, `nivel_pct` 0–100.
@@ -71,7 +71,7 @@ Reconexión de 2 hasta 30 segundos ante fallos MQTT/DB, y nueva suscripción en 
 conexión. Errores de mensajes se registran con límite temporal, sin payloads.
 Heartbeat del consumidor cada 5 segundos; se distingue de la conexión del ESP32.
 
-La cuenta `chitito-reader` solo puede leer los dos tópicos del dispositivo. La ACL
+La cuenta configurada en `MQTT_USERNAME` solo debe poder leer los dos tópicos del dispositivo. La ACL
 creada conserva `readwrite #` y lectura de `$SYS/#` para las cuentas preexistentes. Contraseñas antiguas,
 certificados, puertos, red y contenedor MQTT se conservaron. Se aplicó SIGHUP con
 autorización del usuario y respaldo anterior.

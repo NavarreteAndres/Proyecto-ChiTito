@@ -6,6 +6,7 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
+EnvironmentFile=/etc/chitito/cert-renew.env
 ExecStart=/usr/bin/python3 /usr/local/lib/chitito/renew_certificate.py
 TimeoutStartSec=900
 UMask=0077

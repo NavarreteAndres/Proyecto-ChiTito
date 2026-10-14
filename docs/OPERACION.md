@@ -1,14 +1,19 @@
 # Despliegue y operación
 
-## Aplicación existente
+## Configuración del despliegue
 
-URL pública: **https://15.235.63.174**. Directorio del VPS:
-`/home/ubuntu/chitito/web`. El dashboard exige iniciar sesión. No se necesita
+URL pública: la indicada en `APP_URL`. Directorio del proyecto:
+el elegido al instalar la aplicación. El dashboard exige iniciar sesión. No se necesita
 importar certificados ni abrir un túnel para usar la URL pública.
 
-La configuración está adaptada a ese VPS. Para usar otro servidor, ajustar IP,
+La configuración se adapta a cada servidor mediante variables de entorno. Ajustar IP,
 rutas, identidad TLS MQTT y configuración de Nginx/Certbot; no copiar secretos
 de producción al repositorio.
+
+Los valores `192.0.2.10`, `mqtt.example.invalid`, `app_user`,
+`telemetry_reader` y `operator@example.invalid` son ejemplos. Sustituirlos por
+valores privados en `.env`, que no se versiona. Para ejecutar los comandos desde
+la raíz del proyecto, puede definirse `export CHITITO_PROJECT_DIR="$PWD"`.
 
 | Servicio | Puertos |
 |---|---|
@@ -24,7 +29,7 @@ de producción al repositorio.
 
 Copiar `.env.example` de la raíz a `.env`; configurar `APP_KEY`,
 `DB_PASSWORD`, `MYSQL_ROOT_PASSWORD`, `MQTT_PASSWORD` y mantener
-`APP_URL=https://15.235.63.174`. Generar secretos propios, sin valores
+`APP_URL` y `PUBLIC_IP` con la dirección de tu despliegue. Generar secretos propios, sin valores
 predeterminados. `backend/.env.example` documenta el mismo contrato para Laravel.
 
 Compose suministra únicamente las variables necesarias a cada contenedor.
@@ -62,13 +67,13 @@ Para una instalación nueva, antes de iniciar la configuración final de Nginx:
    Conservar permisos privados en cuentas/claves; webroot debe ser legible por Nginx.
 2. Preparar el certificado local privado en `private/webtls/` si se conserva el
    listener de respaldo. No utilizarlo en el listener público 443.
-3. Iniciar Nginx con `nginx.bootstrap.conf` como configuración activa,
+3. Iniciar Nginx con `nginx.bootstrap.conf` como plantilla `/etc/nginx/templates/default.conf.template`,
    `nginx-app.conf` como snippet y publicar solo 80 y el listener privado 8443
    durante la emisión. Conservar una copia de `nginx.conf` final y respaldar la
    configuración antes de cambiarla.
 4. Permitir únicamente HTTP/HTTPS adicionales en el firewall y comprobar la
    accesibilidad externa del webroot. Conservar SSH y MQTT.
-5. Desde `/home/ubuntu/chitito/web`, solicitar staging y luego producción:
+5. Desde el directorio del proyecto, solicitar staging y luego producción:
 
 ```bash
 sudo python3 infrastructure/issue_ip_certificate.py staging
@@ -86,6 +91,19 @@ docker compose exec -T web nginx -t
 sudo python3 infrastructure/install_certificate_timer.py
 ```
 
+Antes de arrancar una instalación nueva, construir imágenes y preparar la base:
+
+```bash
+docker compose build
+docker compose up -d db
+docker compose run --rm app php artisan migrate --force
+```
+
+Configurar el listener web de bootstrap antes de iniciar `web` por primera vez;
+después de obtener el certificado, volver a la plantilla final y ejecutar
+`docker compose up -d`. Las migraciones anteriores corresponden solo a una
+instalación nueva, no a la limpieza del repositorio ni a cambios de configuración.
+
 No repetir esa preparación sobre la instalación vigente: ya está publicada y
 renueva automáticamente. Nunca publicar certificados staging ni desactivar la
 validación TLS para solventar errores.
@@ -99,7 +117,7 @@ rutinarias.
 
 El deploy hook marca la renovación. El script del host valida y recarga Nginx,
 compara la huella servida por TLS con el certificado en disco y comprueba que
-reste más de un día de validez. Las copias del renovador se instalan root-owned
+reste más de un día de validez. `PUBLIC_IP` se obtiene del entorno o de `.env`; `CHITITO_PROJECT_DIR` permite elegir el directorio del proyecto. El instalador genera un archivo privado de configuración del servicio en `/etc/chitito/cert-renew.env`. Las copias del renovador se instalan root-owned
 en `/usr/local/lib/chitito/`; Certbot no recibe el socket Docker.
 
 ```bash
@@ -117,7 +135,7 @@ su código, reinstalar la copia root-owned con `install_certificate_timer.py`.
 ## Comandos de operación
 
 ```bash
-cd /home/ubuntu/chitito/web
+cd "$CHITITO_PROJECT_DIR"
 docker compose ps
 docker compose up -d
 docker compose logs --tail 100 app mqtt web
@@ -141,7 +159,7 @@ No ejecutar migraciones como rutina al cambiar únicamente un archivo PHP.
 Crear/restablecer el administrador de forma interactiva:
 
 ```bash
-docker compose exec app php artisan chitito:admin admin@chitito.local
+docker compose exec app php artisan chitito:admin operator@example.invalid
 ```
 
 El comando exige contraseña no vacía y revoca las sesiones del usuario que se

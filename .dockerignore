@@ -1,0 +1,17 @@
+.env
+.git
+main
+docs
+infrastructure/private
+backend/vendor
+frontend/node_modules
+frontend/dist
+*.tar.gz
+.qa
+backend/tests
+backend/phpunit*.xml
+frontend/src/*.test.*
+frontend/src/*.spec.*
+*.crt
+*.der
+*.zip

@@ -1,6 +1,6 @@
 **Aplicación publicada: https://15.235.63.174**
 
-## Arquitectura
+## Arquitectura actual
 
 ```text
 ESP32 (HX711 + VL53L1X)
